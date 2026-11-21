@@ -8,6 +8,16 @@
 - 读快照
 - 回收预检
 - 留存批单
+- 离线改方收单（档案页收单：乐观并发复检、整单原子接纳/退回、读快照隔离与收单幂等）
+
+### 离线改方收单
+
+配方室从旧档案领单离线改方，交回时在「离线改方收单」页收单：
+
+- 领单固化每个配方的基线版本号与配方；收单时现行版本号一旦前进（含改过又改回）即判冲突，**整单退回并点名冲突配方**，不写版次、不耗序号。
+- 无冲突则整单接纳，批单内所有配方**共用一个提交序号**；提交序号由发号器行锁分配，并发不重号。
+- 版本链只追加，已打开的读快照按固化水位仍读旧配方；批单号是幂等键，中断重试不重复生效；全量版本链可按历史水位重放核对。
+- 接口前缀 `/api/offline`，工作台第五个模块。演示账号 `operator` 可登记版次、打开快照、领单与收单；`viewer` 只读。
 
 ## 本地运行
 
@@ -45,7 +55,19 @@ docker compose up -d --build --wait
 | db | MySQL 8.0，持久卷保存档案、执行、证据及审计 |
 | redis | Redis 7，追加日志卷保存队列唤醒信号 |
 
-编辑 `backend/src/services/domain.py` 可修改试算方法与业务表单说明。API 路由、数据定义和页面位于 `backend/src/routes/`、`backend/src/models/` 与 `frontend/src/pages/`。开发时更新源文件后重新构建对应服务。
+编辑 `backend/src/services/domain.py` 可修改试算方法与业务表单说明。API 路由、数据定义和页面位于 `backend/src/routes/`、`backend/src/models/` 与 `frontend/src/pages/`。开发时更新源文件后重新构建对应服务。离线改方模块的领域逻辑在 `backend/src/services/offline_orders.py`，事务边界在 `offline_workflow.py`，前端页面在 `frontend/src/pages/offline.js`、`order-detail.js`、`new-order.js`。
+
+### 离线模块验收脚本
+
+`tests_manual/` 下是不依赖容器的验收脚本（测试依赖装在隔离目录，不进仓库；后端用 SQLite 同语义验证，生产仍是 MySQL/InnoDB）：
+
+| 脚本 | 覆盖 |
+| --- | --- |
+| `offline_service_check.py` | 服务层：接纳/冲突/改回/退回/幂等/MVCC/并发/历史回放 |
+| `offline_api_check.py` | HTTP 层：鉴权、422 校验、409 退回、幂等响应 |
+| `offline_concurrency_check.py` | 多连接并发压力：序号唯一连续、版本号不重复、重试不重复生效 |
+| `offline_journey_check.py` | 端到端业务旅程：领单→别组改动→改回→冲突→正确单接纳→快照隔离 |
+| `offline_frontend_check.mjs` | jsdom：档案页、批单详情、新建表单与 409 交互 |
 
 `.env.example` 提供 `FRONTEND_PORT`、`BACKEND_PORT`、`DB_PORT`、`DB_PASSWORD`、`AUTH_KEY` 、`SEED_DEMO` 与 `NETWORK_SUBNET`。修改 `NETWORK_SUBNET` 可避开本机现有容器网段。所有发布的端口绑定本机回环地址。接入独立部署前需配置自己的凭据并按业务范围做独立验收。
 

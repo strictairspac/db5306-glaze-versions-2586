@@ -92,3 +92,24 @@ summary { cursor:pointer; font-weight:600; color:var(--accent-dark); }
   th,td { padding:.5rem .55rem; }
 }
 @media (prefers-reduced-motion: reduce) { *,*::before,*::after { transition: none !important; } }
+
+/* 离线改方收单模块 */
+.metrics-bar { display: flex; flex-wrap: wrap; gap: 1.4rem; margin: 1rem 0 1.4rem; padding: .9rem 1.2rem; background: var(--soft); border: 1px solid var(--line); border-radius: var(--radius); }
+.metrics-bar span { color: var(--muted); font-weight: 600; }
+.metrics-bar strong { color: var(--ink); font-size: 1.18em; margin-left: .3em; }
+.muted { color: var(--muted); }
+.ok { color: #1d6b3a; font-weight: 650; }
+.two-col { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.mini-form { display: grid; gap: .8rem; align-content: start; }
+.mini-form h3 { margin: 0 0 .2rem; }
+.order-form { display: grid; gap: 1.1rem; max-width: 980px; }
+.order-form .field { max-width: 560px; }
+#items { display: grid; gap: 1rem; }
+.item-row { border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem 1.1rem; display: grid; gap: .8rem; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); background: var(--sheet); }
+.item-row legend { font-weight: 700; padding: 0 .5em; }
+.item-row .remove-item { grid-column: 1 / -1; justify-self: start; }
+.order-head { background: var(--soft); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.1rem 1.3rem; margin-bottom: 1.3rem; }
+.order-head dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .6rem 1.2rem; margin: 0 0 .8rem; }
+.order-head dt { color: var(--muted); font-size: .85em; font-weight: 600; }
+.order-head dd { margin: .15rem 0 0; font-weight: 650; }
+.order-head form { display: flex; gap: .8rem; flex-wrap: wrap; margin-top: .9rem; }

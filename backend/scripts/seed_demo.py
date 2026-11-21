@@ -2,6 +2,7 @@ from sqlalchemy import func, select
 from sqlalchemy.dialects.mysql import insert as mysql_insert
 from sqlalchemy.dialects.postgresql import insert as postgres_insert
 
+from scripts.seed_offline import seed_offline
 from src.config.settings import IS_MYSQL, engine
 from src.constants.workflow import Role
 from src.models.tables import audit, cases, evidence, runs, schema, users
@@ -25,6 +26,7 @@ def seed():
                 'password_hash': hash_password('Demo-Walkthrough-2026')})
         keep_existing(conn, cases, 'slug', {'slug': 'demo', 'title': SPEC['name'],
             'payload': SPEC['sample'], 'author': 'demo', 'created_at': utc_time()})
+        seed_offline(conn)
         return {table.name: conn.execute(select(func.count()).select_from(table)).scalar_one()
                 for table in (users, cases, runs, evidence, audit)}
 
